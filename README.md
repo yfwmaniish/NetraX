@@ -190,14 +190,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **GitHub Repository**: https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE
 - **Documentation**: [Wiki](https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE/wiki)
 - **Issues**: [Bug Reports](https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE/issues)
-
-## 💬 Support
-
-For support and questions:
-- Open an [issue](https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE/issues)
-- Check the [documentation](https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE/wiki)
-- Review the troubleshooting guide
-
 ---
 
 **Built with ❤️ by the H4$HCR4CK$ Team**
