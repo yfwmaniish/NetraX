@@ -1,5 +1,4 @@
-# 🕵️ H4$HCR4CK$ Dark Web Intelligence System
-Made by [@Vectorindia1](https://github.com/Vectorindia1) & [@yfwmaniish](https://github.com/yfwmaniish)
+
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
