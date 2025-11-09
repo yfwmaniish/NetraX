@@ -11,3 +11,5 @@ venv/
 *.jpg
 .DS_Store
 node_modules/
+*.bak*
+decimal_scraped_data*
