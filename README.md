@@ -185,13 +185,6 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links
-
-- **GitHub Repository**: https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE
-- **Documentation**: [Wiki](https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE/wiki)
-- **Issues**: [Bug Reports](https://github.com/Vectorindia1/H4_HCR4CK_DARKWEB_INTELLIGENCE/issues)
----
-
 **Built with ❤️ by the H4$HCR4CK$ Team**
 
 *Advancing cybersecurity through intelligent automation and AI-powered threat detection.*
