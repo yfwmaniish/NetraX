@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="10">
+    <title>🚀 H4$HCR4CK$ Darkweb Monitoring</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #0d0d0d;
+            font-family: Arial, sans-serif;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #00ffff;
+            color: #111;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .download-btn:hover {
+            background-color: #00cccc;
+            color: #fff;
+        }
+        .danger-btn {
+            background-color: #ff4444;
+            color: white;
+        }
+        .danger-btn:hover {
+            background-color: #cc0000;
+        }
+        .stats {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        .stats > div {
+            background-color: #111;
+            padding: 15px 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #00ffffa0;
+            text-align: center;
+            min-width: 150px;
+            color: #ddd;
+            font-weight: bold;
+        }
+        .stats > div h3 {
+            margin: 0 0 10px 0;
+            color: #00ffff;
+        }
+        input[name="search"] {
+            padding: 6px 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #222;
+            color: #eee;
+            margin-left: 20px;
+            width: 250px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #121212;
+            color: #eee;
+            table-layout: auto;
+            word-wrap: break-word;
+        }
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #222;
+            text-align: left;
+            font-family: monospace;
+        }
+        th {
+            color: #00ffff;
+        }
+        tr:hover {
+            background-color: #1a1a1a;
+        }
+        .tag {
+            background-color: #222;
+            color: #00ffff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .pagination {
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            color: #00ffff;
+        }
+        .pagination button[disabled] {
+            opacity: 0.5;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+<h1 style="text-align:center; color:#00ffff; margin-bottom: 20px;">🚀 H4$HCR4CK$ Darkweb Monitoring</h1>
+
+<div class="stats">
+    <div>
+        <h3>Total Sites Crawled</h3>
+        <p>{{ total_sites }}</p>
+    </div>
+    <div>
+        <h3>Total Alerts Found</h3>
+        <p>{{ total_alerts }}</p>
+    </div>
+    <div id="indianLeaksCard" style="display: none; cursor: pointer;" onclick="showIndianLeaksModal()">
+        <h3>🇮🇳 Indian Data Leaks</h3>
+        <p id="indianLeaksCount">0</p>
+        <small style="color: #888; font-size: 0.8em;">Click to view details</small>
+    </div>
+    <div id="criticalLeaksCard" style="display: none;">
+        <h3>☠️ Critical Leaks</h3>
+        <p id="criticalLeaksCount">0</p>
+    </div>
+</div>
+
+<div style="text-align: right; margin: 10px;">
+    <a href="/indian_search" class="download-btn" style="background-color: #ff6b35; margin-right: 10px;">🇮🇳 Indian Data Search</a>
+    <form method="POST" action="/clear_history" style="display:inline;" onsubmit="return confirm('⚠ Are you sure you want to delete ALL data?');">
+        <button type="submit" class="download-btn danger-btn">🧹 Clear All History</button>
+    </form>
+    <a href="{{ url_for('download_csv') }}" class="download-btn">📥 Download CSV</a>
+</div>
+
+<form method="get" action="/dashboard" style="margin-bottom: 20px;">
+    <label for="run_id" style="color: #00ffff; font-weight: bold;">Filter by Batch (run_id):</label>
+    <select name="run_id" onchange="this.form.submit()">
+        <option value="">All Batches</option>
+        {% for id in run_ids %}
+            <option value="{{ id }}" {% if id == selected_run_id %}selected{% endif %}>{{ id }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="search" style="color: #00ffff; font-weight: bold;">Search:</label>
+    <input type="search" name="search" id="search" placeholder="Search URLs, Keywords, Entities..." value="{{ search|default('') }}">
+    <button type="submit" class="download-btn" style="margin-left: 10px;">🔍 Search</button>
+</form>
+
+<p style="color:#888; font-size: 12px;">Rows received: {{ data|length }}</p>
+
+<div class="pagination">
+    {% if page > 1 %}
+      <a href="{{ url_for('dashboard', run_id=selected_run_id, search=search, page=page-1) }}" class="download-btn">Previous</a>
+    {% else %}
+      <button disabled class="download-btn">Previous</button>
+    {% endif %}
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+      <a href="{{ url_for('dashboard', run_id=selected_run_id, search=search, page=page+1) }}" class="download-btn">Next</a>
+    {% else %}
+      <button disabled class="download-btn">Next</button>
+    {% endif %}
+</div>
+
+<div style="overflow-x:auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>ID</th>
+                <th>URL</th>
+                <th>Title</th>
+                <th>Matched Keywords</th>
+                <th>Entities</th>
+                <th>AI Classification</th>
+                <th>Leak Severity</th>
+                <th>Run ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td>{{ item.timestamp }}</td>
+                <td>{{ item.id }}</td>
+                <td><a href="{{ item.url }}" target="_blank" style="color: #00ffff;">Link</a></td>
+                <td>{{ item.title|safe }}</td>
+                <td>
+                    {% if item.keywords and item.keywords != ['-'] %}
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% for kw in item.keywords %}
+                                <span class="tag">{{ kw }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.entities %}
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% for ent in item.entities %}
+                                <span class="tag">{{ ent }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.ai_classification %}
+                        {% if item.ai_classification == "Aadhaar" %}
+                            <span style="background-color:#FF6B35; color:white; padding:4px 8px; border-radius:12px;">🪪 Aadhaar</span>
+                        {% elif item.ai_classification == "PAN" %}
+                            <span style="background-color:#4ECDC4; color:white; padding:4px 8px; border-radius:12px;">🏛️ PAN</span>
+                        {% elif item.ai_classification == "Banking/Financial" %}
+                            <span style="background-color:#45B7D1; color:white; padding:4px 8px; border-radius:12px;">🏦 Banking</span>
+                        {% elif item.ai_classification == "Telecom" %}
+                            <span style="background-color:#96CEB4; color:white; padding:4px 8px; border-radius:12px;">📱 Telecom</span>
+                        {% elif item.ai_classification == "General PII" %}
+                            <span style="background-color:#FFEAA7; color:black; padding:4px 8px; border-radius:12px;">👤 General PII</span>
+                        {% else %}
+                            <span style="background-color:#DDA0DD; color:white; padding:4px 8px; border-radius:12px;">🔍 {{ item.ai_classification }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span style="color:#888;">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.leak_severity %}
+                        {% if item.leak_severity == "CRITICAL" %}
+                            <span style="background-color:#8B0000; color:white; padding:4px 8px; border-radius:12px;">☠️ Critical</span>
+                        {% elif item.leak_severity == "HIGH" %}
+                            <span style="background-color:#D32F2F; color:white; padding:4px 8px; border-radius:12px;">🔴 High</span>
+                        {% elif item.leak_severity == "MEDIUM" %}
+                            <span style="background-color:#FBC02D; color:black; padding:4px 8px; border-radius:12px;">🟠 Medium</span>
+                        {% elif item.leak_severity == "LOW" %}
+                            <span style="background-color:#388E3C; color:white; padding:4px 8px; border-radius:12px;">🟢 Low</span>
+                        {% else %}
+                            <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:12px;">ℹ️ {{ item.leak_severity }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span style="color:#888;">-</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.run_id }}</td>
+                <td>
+                    <a href="/api/export_json?run_id={{ item.run_id }}" class="download-btn" style="font-size: 12px; padding: 6px 10px;">📊 Export JSON</a>
+                    <a href="/search" class="download-btn" style="font-size: 12px; padding: 6px 10px;">🔍 Search</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="pagination">
+    {% if page > 1 %}
+      <a href="{{ url_for('dashboard', run_id=selected_run_id, search=search, page=page-1) }}" class="download-btn">Previous</a>
+    {% else %}
+      <button disabled class="download-btn">Previous</button>
+    {% endif %}
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+      <a href="{{ url_for('dashboard', run_id=selected_run_id, search=search, page=page+1) }}" class="download-btn">Next</a>
+    {% else %}
+      <button disabled class="download-btn">Next</button>
+    {% endif %}
+</div>
+
+<!-- Indian Leaks Modal -->
+<div id="indianLeaksModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+    <div style="background-color: #111; margin: 5% auto; padding: 30px; border: 2px solid #ff6b35; border-radius: 15px; width: 90%; max-width: 1000px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: #ff6b35; margin: 0;">🇮🇳 Indian Data Leaks Details</h2>
+            <button onclick="closeIndianLeaksModal()" style="background: #ff4444; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 18px;">&times;</button>
+        </div>
+        
+        <div id="indianLeaksDetails" style="color: #eee;">
+            <div style="text-align: center; padding: 20px; color: #888;">Loading Indian leak details...</div>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="exportIndianLeaks()" style="background: #00ffff; color: #000; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px;">📥 Export All</button>
+            <a href="/indian_search" style="background: #ff6b35; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;">🔍 Advanced Search</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function scoreNow(itemId, button) {
+    button.disabled = true;
+    button.textContent = "⏳ Scoring...";
+
+    fetch(`/score/${itemId}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.score !== undefined) {
+            alert("✅ Threat Score: " + data.score + "\n\nReasons:\n" + data.reasons.join("\n"));
+            location.reload();
+        } else {
+            alert("❌ Failed to calculate threat score.");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("❌ Error while scoring.");
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.textContent = "⚡ Score Now";
+    });
+}
+
+// Load Indian leak statistics
+document.addEventListener('DOMContentLoaded', function() {
+    loadIndianStats();
+});
+
+async function loadIndianStats() {
+    try {
+        const response = await fetch('/api/indian_statistics');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                const stats = data.statistics;
+                const totalIndianLeaks = (stats.aadhaar_leaks || 0) + (stats.pan_leaks || 0) + (stats.banking_leaks || 0) + (stats.telecom_leaks || 0) + (stats.kyc_leaks || 0);
+                
+                if (totalIndianLeaks > 0) {
+                    document.getElementById('indianLeaksCount').textContent = totalIndianLeaks;
+                    document.getElementById('indianLeaksCard').style.display = 'block';
+                    // Store stats globally for modal
+                    window.indianLeaksStats = stats;
+                }
+                
+                const criticalLeaks = stats.high_severity_indian || 0;
+                if (criticalLeaks > 0) {
+                    document.getElementById('criticalLeaksCount').textContent = criticalLeaks;
+                    document.getElementById('criticalLeaksCard').style.display = 'block';
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load Indian statistics:', error);
+    }
+}
+
+function showIndianLeaksModal() {
+    document.getElementById('indianLeaksModal').style.display = 'block';
+    loadIndianLeaksDetails();
+}
+
+function closeIndianLeaksModal() {
+    document.getElementById('indianLeaksModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('indianLeaksModal');
+    if (event.target == modal) {
+        closeIndianLeaksModal();
+    }
+}
+
+async function loadIndianLeaksDetails() {
+    const detailsDiv = document.getElementById('indianLeaksDetails');
+    detailsDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #888;">🔍 Loading detailed Indian leak information...</div>';
+    
+    try {
+        // Get recent Indian leaks for each category
+        const categories = ['aadhaar', 'pan', 'banking', 'telecom', 'kyc'];
+        let allDetails = '';
+        
+        for (const category of categories) {
+            try {
+                const response = await fetch('/api/search_indian_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        search_type: category,
+                        limit: 5  // Get top 5 for each category
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.results.length > 0) {
+                        const categoryIcons = {
+                            'aadhaar': '🪪',
+                            'pan': '🏛️', 
+                            'banking': '🏦',
+                            'telecom': '📱',
+                            'kyc': '📋'
+                        };
+                        
+                        allDetails += `
+                            <div style="margin-bottom: 25px; border: 1px solid #333; padding: 15px; border-radius: 8px; background-color: #1a1a1a;">
+                                <h3 style="color: #ff6b35; margin-bottom: 15px;">${categoryIcons[category]} ${category.toUpperCase()} Leaks (${data.results.length})</h3>
+                        `;
+                        
+                        data.results.forEach((result, index) => {
+                            const timestamp = new Date(result.timestamp).toLocaleString();
+                            const severityColor = {
+                                'CRITICAL': '#8B0000',
+                                'HIGH': '#D32F2F', 
+                                'MEDIUM': '#FBC02D',
+                                'LOW': '#388E3C'
+                            }[result.leak_severity] || '#666';
+                            
+                            allDetails += `
+                                <div style="margin-bottom: 10px; padding: 10px; background-color: #222; border-radius: 5px; border-left: 3px solid ${severityColor};">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <strong style="color: #00ffff;">ID: ${result.id}</strong>
+                                        <small style="color: #888;">${timestamp}</small>
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>URL:</strong> <a href="${result.url}" target="_blank" style="color: #ff6b35; text-decoration: none; word-break: break-all;">${result.url}</a>
+                                    </div>
+                                    ${result.title ? `<div style="margin-bottom: 8px;"><strong>Title:</strong> ${result.title}</div>` : ''}
+                                    ${result.entities && result.entities.length > 0 ? `
+                                        <div style="margin-bottom: 8px;">
+                                            <strong>Entities:</strong> 
+                                            ${result.entities.map(entity => `<span style="background: #333; color: #ff6b35; padding: 2px 6px; margin: 2px; border-radius: 10px; font-size: 0.8em;">${entity}</span>`).join('')}
+                                        </div>
+                                    ` : ''}
+                                    ${result.leak_severity ? `
+                                        <div style="margin-bottom: 8px;">
+                                            <strong>Severity:</strong> 
+                                            <span style="background-color: ${severityColor}; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.8em;">${result.leak_severity}</span>
+                                        </div>
+                                    ` : ''}
+                                    <div style="font-size: 0.85em; color: #888;">Run ID: ${result.run_id}</div>
+                                </div>
+                            `;
+                        });
+                        
+                        allDetails += '</div>';
+                    }
+                }
+            } catch (error) {
+                console.warn(`Failed to load ${category} details:`, error);
+            }
+        }
+        
+        if (allDetails) {
+            detailsDiv.innerHTML = allDetails;
+        } else {
+            detailsDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #888;">No detailed Indian leak information available.</div>';
+        }
+        
+    } catch (error) {
+        console.error('Failed to load Indian leaks details:', error);
+        detailsDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #ff4444;">❌ Failed to load leak details. Please try again.</div>';
+    }
+}
+
+function exportIndianLeaks() {
+    // Export all Indian leaks as JSON
+    window.open('/api/export_json?classification=aadhaar,pan,banking,telecom,kyc&limit=1000', '_blank');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🇮🇳 Indian Data Leak Search - H4$HCR4CK$</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #0d0d0d;
+            font-family: Arial, sans-serif;
+            color: #eee;
+        }
+        .search-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #111;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #ff6b3580;
+        }
+        .search-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-header h1 {
+            color: #ff6b35;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .search-header p {
+            color: #888;
+            font-size: 1.1em;
+        }
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .search-section {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+        .search-section h3 {
+            color: #00ffff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            color: #ccc;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #222;
+            color: #eee;
+            font-size: 16px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #ff6b35;
+            outline: none;
+            box-shadow: 0 0 5px #ff6b3550;
+        }
+        .search-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px #ff6b3550;
+        }
+        .search-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .results-container {
+            margin-top: 30px;
+            display: none;
+        }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+        }
+        .results-count {
+            color: #ff6b35;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .export-btn {
+            padding: 8px 16px;
+            background-color: #00ffff;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .export-btn:hover {
+            background-color: #00cccc;
+        }
+        .result-item {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #666;
+        }
+        .result-item.critical {
+            border-left-color: #8B0000;
+            background-color: #1a0808;
+        }
+        .result-item.high {
+            border-left-color: #D32F2F;
+            background-color: #1a0808;
+        }
+        .result-item.medium {
+            border-left-color: #FBC02D;
+            background-color: #1a1a08;
+        }
+        .result-item.low {
+            border-left-color: #388E3C;
+            background-color: #081a08;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .result-title {
+            color: #ff6b35;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .result-url {
+            color: #00ffff;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .result-url:hover {
+            text-decoration: underline;
+        }
+        .result-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #ccc;
+        }
+        .result-entities {
+            margin: 10px 0;
+        }
+        .entity-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px;
+            background-color: #333;
+            color: #ff6b35;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .classification-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .aadhaar { background-color: #FF6B35; color: white; }
+        .pan { background-color: #4ECDC4; color: white; }
+        .banking { background-color: #45B7D1; color: white; }
+        .telecom { background-color: #96CEB4; color: white; }
+        .kyc { background-color: #FFEAA7; color: black; }
+        .severity-critical { background-color: #8B0000; color: white; }
+        .severity-high { background-color: #D32F2F; color: white; }
+        .severity-medium { background-color: #FBC02D; color: black; }
+        .severity-low { background-color: #388E3C; color: white; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #ff6b35;
+            font-size: 1.2em;
+        }
+        .error-message {
+            background-color: #1a0808;
+            border: 1px solid #ff4444;
+            color: #ff6b35;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ff6b35;
+            display: block;
+        }
+        .stat-label {
+            color: #ccc;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-container {
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="search-header">
+            <h1>🇮🇳 Indian Data Leak Search</h1>
+            <p>Search for leaked Indian data including Aadhaar, PAN, KYC documents, banking information, and telecom records</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid" style="display: none;">
+            <div class="stat-card">
+                <span class="stat-number" id="aadhaarCount">0</span>
+                <div class="stat-label">🪪 Aadhaar Leaks</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="panCount">0</span>
+                <div class="stat-label">🏛️ PAN Leaks</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="bankingCount">0</span>
+                <div class="stat-label">🏦 Banking Leaks</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="telecomCount">0</span>
+                <div class="stat-label">📱 Telecom Leaks</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="kycCount">0</span>
+                <div class="stat-label">📋 KYC Leaks</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="criticalCount">0</span>
+                <div class="stat-label">⚠️ Critical Severity</div>
+            </div>
+        </div>
+
+        <div class="search-grid">
+            <div class="search-section">
+                <h3>🔍 Search by Identifier</h3>
+                <form class="search-form" id="identifierSearchForm">
+                    <div class="form-group">
+                        <label for="identifier">Enter Name, Email, Phone, Aadhaar, PAN, etc.</label>
+                        <input type="text" id="identifier" name="identifier" placeholder="e.g., john@gmail.com, 9876543210, ABCDE1234F" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="searchType">Search Type</label>
+                        <select id="searchType" name="search_type">
+                            <option value="all">All Indian Data</option>
+                            <option value="aadhaar">🪪 Aadhaar Numbers</option>
+                            <option value="pan">🏛️ PAN Cards</option>
+                            <option value="banking">🏦 Banking Information</option>
+                            <option value="telecom">📱 Telecom Data</option>
+                            <option value="kyc">📋 KYC Documents</option>
+                            <option value="indian_ids">🆔 All Indian IDs</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="search-btn">🔍 Search Leaks</button>
+                </form>
+            </div>
+
+            <div class="search-section">
+                <h3>📊 Browse by Category</h3>
+                <form class="search-form" id="categorySearchForm">
+                    <div class="form-group">
+                        <label for="category">Data Category</label>
+                        <select id="category" name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="aadhaar">🪪 Aadhaar Leaks</option>
+                            <option value="pan">🏛️ PAN Card Leaks</option>
+                            <option value="banking">🏦 Banking & Financial</option>
+                            <option value="telecom">📱 Telecom & Mobile</option>
+                            <option value="kyc">📋 KYC Documents</option>
+                            <option value="indian_ids">🆔 All Government IDs</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="severity">Severity Filter</label>
+                        <select id="severity" name="severity">
+                            <option value="">All Severity Levels</option>
+                            <option value="CRITICAL">☠️ Critical</option>
+                            <option value="HIGH">🔴 High</option>
+                            <option value="MEDIUM">🟠 Medium</option>
+                            <option value="LOW">🟢 Low</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="search-btn">📊 Browse Category</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount">No results found</div>
+                <button class="export-btn" id="exportBtn" onclick="exportResults()" style="display: none;">
+                    📥 Export JSON
+                </button>
+            </div>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 20px;">
+        <a href="/dashboard" style="color: #00ffff; text-decoration: none; font-weight: bold;">
+            ← Back to Main Dashboard
+        </a>
+    </div>
+
+    <script>
+        let currentResults = [];
+        let currentSearchType = '';
+        let currentIdentifier = '';
+
+        // Load Indian leak statistics on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadIndianStats();
+        });
+
+        async function loadIndianStats() {
+            try {
+                const response = await fetch('/api/indian_statistics');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        const stats = data.statistics;
+                        document.getElementById('aadhaarCount').textContent = stats.aadhaar_leaks || 0;
+                        document.getElementById('panCount').textContent = stats.pan_leaks || 0;
+                        document.getElementById('bankingCount').textContent = stats.banking_leaks || 0;
+                        document.getElementById('telecomCount').textContent = stats.telecom_leaks || 0;
+                        document.getElementById('kycCount').textContent = stats.kyc_leaks || 0;
+                        document.getElementById('criticalCount').textContent = stats.high_severity_indian || 0;
+                        document.getElementById('statsGrid').style.display = 'grid';
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to load statistics:', error);
+            }
+        }
+
+        // Identifier search form handler
+        document.getElementById('identifierSearchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const identifier = document.getElementById('identifier').value.trim();
+            const searchType = document.getElementById('searchType').value;
+            
+            if (!identifier) {
+                alert('Please enter an identifier to search for.');
+                return;
+            }
+
+            currentIdentifier = identifier;
+            currentSearchType = searchType;
+            
+            await performSearch('identifier', {
+                identifier: identifier,
+                search_type: searchType
+            });
+        });
+
+        // Category search form handler
+        document.getElementById('categorySearchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const category = document.getElementById('category').value;
+            const severity = document.getElementById('severity').value;
+            
+            if (!category) {
+                alert('Please select a category to search.');
+                return;
+            }
+
+            currentSearchType = category;
+            currentIdentifier = '';
+            
+            await performSearch('category', {
+                search_type: category,
+                severity: severity
+            });
+        });
+
+        async function performSearch(mode, params) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsContent = document.getElementById('resultsContent');
+            const resultsCount = document.getElementById('resultsCount');
+            const exportBtn = document.getElementById('exportBtn');
+
+            // Show loading state
+            resultsContainer.style.display = 'block';
+            resultsContent.innerHTML = '<div class="loading">🔍 Searching for Indian data leaks...</div>';
+            resultsCount.textContent = 'Searching...';
+            exportBtn.style.display = 'none';
+
+            try {
+                const endpoint = mode === 'identifier' ? '/api/search_indian_identifier' : '/api/search_indian_category';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentResults = data.results || [];
+                    displayResults(currentResults);
+                    
+                    if (currentResults.length > 0) {
+                        resultsCount.textContent = `Found ${currentResults.length} leak${currentResults.length !== 1 ? 's' : ''}`;
+                        exportBtn.style.display = 'inline-block';
+                    } else {
+                        resultsCount.textContent = 'No results found';
+                        exportBtn.style.display = 'none';
+                    }
+                } else {
+                    throw new Error(data.error || 'Search failed');
+                }
+
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsContent.innerHTML = `
+                    <div class="error-message">
+                        <strong>Search Error:</strong> ${error.message}
+                        <br><br>
+                        Please try again or contact support if the issue persists.
+                    </div>
+                `;
+                resultsCount.textContent = 'Search failed';
+                exportBtn.style.display = 'none';
+            }
+        }
+
+        function displayResults(results) {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (results.length === 0) {
+                resultsContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #888;">
+                        <h3>No Indian data leaks found</h3>
+                        <p>Try a different search term or category.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            results.forEach(result => {
+                const severityClass = result.leak_severity ? result.leak_severity.toLowerCase() : '';
+                const classificationClass = result.ai_classification ? result.ai_classification.toLowerCase().replace(/[^a-z]/g, '') : '';
+                
+                html += `
+                    <div class="result-item ${severityClass}">
+                        <div class="result-header">
+                            <div>
+                                <div class="result-title">${escapeHtml(result.title || 'Untitled')}</div>
+                                <a href="${result.url}" target="_blank" class="result-url">🔗 View Source</a>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 5px; align-items: flex-end;">
+                                ${result.ai_classification ? `<span class="classification-badge ${classificationClass}">${getClassificationIcon(result.ai_classification)} ${result.ai_classification}</span>` : ''}
+                                ${result.leak_severity ? `<span class="classification-badge severity-${severityClass}">${getSeverityIcon(result.leak_severity)} ${result.leak_severity}</span>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="result-meta">
+                            <div class="meta-item">📅 ${formatDate(result.timestamp)}</div>
+                            <div class="meta-item">🆔 Run: ${result.run_id}</div>
+                            ${result.ai_confidence ? `<div class="meta-item">🎯 Confidence: ${Math.round(result.ai_confidence * 100)}%</div>` : ''}
+                        </div>
+                        
+                        ${result.entities && result.entities.length > 0 ? `
+                        <div class="result-entities">
+                            <strong>Detected Entities:</strong><br>
+                            ${result.entities.map(entity => `<span class="entity-tag">${escapeHtml(entity)}</span>`).join('')}
+                        </div>
+                        ` : ''}
+                        
+                        ${result.keywords && result.keywords.length > 0 ? `
+                        <div class="result-entities">
+                            <strong>Keywords:</strong><br>
+                            ${result.keywords.map(kw => `<span class="entity-tag" style="background-color: #444;">${escapeHtml(kw)}</span>`).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            resultsContent.innerHTML = html;
+        }
+
+        function getClassificationIcon(classification) {
+            const icons = {
+                'aadhaar': '🪪',
+                'pan': '🏛️',
+                'banking': '🏦',
+                'banking/financial': '🏦',
+                'telecom': '📱',
+                'kyc': '📋',
+                'government_id': '🆔'
+            };
+            return icons[classification.toLowerCase()] || '🔍';
+        }
+
+        function getSeverityIcon(severity) {
+            const icons = {
+                'CRITICAL': '☠️',
+                'HIGH': '🔴',
+                'MEDIUM': '🟠',
+                'LOW': '🟢'
+            };
+            return icons[severity] || 'ℹ️';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown';
+            try {
+                return new Date(dateString).toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return dateString;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function exportResults() {
+            if (currentResults.length === 0) {
+                alert('No results to export');
+                return;
+            }
+
+            const exportData = {
+                search_type: currentSearchType,
+                identifier: currentIdentifier,
+                results_count: currentResults.length,
+                exported_at: new Date().toISOString(),
+                results: currentResults
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                type: 'application/json'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `indian_leak_search_${currentSearchType}_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
